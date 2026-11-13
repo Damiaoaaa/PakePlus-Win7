@@ -53,31 +53,18 @@ function displayHint(ip, others) {
   }
 }
 
-function assetUrl(rel) {
-  try { return new URL(rel, location.href).href; } catch (error) { return rel; }
-}
-
 function loadScript(src) {
-  const href = assetUrl(src);
   return new Promise((resolve, reject) => {
-    const existing = document.querySelector('script[src="' + src + '"], script[src="' + href + '"]');
-    if (existing) {
+    if (document.querySelector('script[src="' + src + '"]')) {
       resolve();
       return;
     }
     const el = document.createElement("script");
-    el.src = href;
+    el.src = src;
     el.onload = () => resolve();
     el.onerror = () => reject(new Error("脚本加载失败: " + src));
     document.head.appendChild(el);
   });
-}
-
-async function ensureBus() {
-  if (window.Bus) return window.Bus;
-  await loadScript("./shared/bus.js");
-  if (!window.Bus) throw new Error("通讯模块 Bus 未加载，请重新打包并确认包含 shared/bus.js");
-  return window.Bus;
 }
 
 async function ensurePeer() {
@@ -85,7 +72,7 @@ async function ensurePeer() {
     peerReady = true;
     return;
   }
-  await loadScript("./shared/peerjs.min.js");
+  await loadScript("shared/peerjs.min.js");
   peerReady = true;
 }
 
@@ -93,12 +80,11 @@ async function detectIp() {
   hintEl.textContent = "正在识别内网地址…";
   refreshBtn.disabled = true;
   try {
-    const bus = await ensureBus();
     const ips = await Promise.race([
-      bus.getLocalIps(),
+      Bus.getLocalIps(),
       new Promise((resolve) => setTimeout(() => resolve([]), 2500))
     ]);
-    const primary = bus.primaryIp(ips);
+    const primary = Bus.primaryIp(ips);
     if (primary) {
       ipEl.value = primary;
       rememberIp(primary);
@@ -131,7 +117,7 @@ async function detectIp() {
 
 function enterOps() {
   statusEl.textContent = "已连接内容屏，正在进入操作页…";
-  if (window.Bus && typeof window.Bus.keepHubAlive === "function") window.Bus.keepHubAlive();
+  Bus.keepHubAlive();
   location.href = "./ops/";
 }
 
@@ -154,17 +140,16 @@ startBtn.addEventListener("click", async () => {
   refreshBtn.disabled = true;
   statusEl.textContent = "正在本机启动服务…";
   try {
-    const bus = await ensureBus();
     await ensurePeer();
     const savedIp = currentIp() || localStorage.getItem("kiosk-home-ip") || "";
     const connectIp = isLanIp(savedIp) ? savedIp : (savedIp || "127.0.0.1");
     const detectPromise = detectIp().catch(() => currentIp());
-    const usedPort = await bus.hostStart(connectIp, DEFAULT_PORT, (msg) => {
+    const usedPort = await Bus.hostStart(connectIp, DEFAULT_PORT, (msg) => {
       statusEl.textContent = msg;
       const match = /改用\s+(\d+)/.exec(msg || "");
       if (match) setActivePort(match[1]);
     });
-    setActivePort(usedPort || bus.getPort() || activePort);
+    setActivePort(usedPort || Bus.getPort() || activePort);
     started = true;
     waiting = true;
     startBtn.textContent = "服务运行中";
@@ -181,7 +166,7 @@ startBtn.addEventListener("click", async () => {
       statusEl.textContent = "本机服务已启动（端口 " + activePort + "）。请在上方手动填写内网 IP，再让内容屏照填。";
       ipEl.focus();
     }
-    bus.waitPaired(() => {
+    Bus.waitPaired(() => {
       if (!waiting) return;
       waiting = false;
       enterOps();
