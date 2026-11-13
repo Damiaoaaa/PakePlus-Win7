@@ -130,7 +130,7 @@ async function detectIp() {
 function enterOps() {
   statusEl.textContent = "已连接内容屏，正在进入操作页…";
   Bus.keepHubAlive();
-  location.href = "./ops/";
+  location.href = "./ops/index.html";
 }
 
 ipEl.addEventListener("input", () => {
