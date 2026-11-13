@@ -74,9 +74,13 @@ async function ensurePeer() {
   await loadScript("./shared/peerjs.min.js");
 }
 
-function goStandby() {
-  if (window.Nav && Nav.go) Nav.go("./standby/index.html");
-  else location.assign(assetUrl("./standby/index.html"));
+function goKiosk() {
+  // 单页 kiosk：避免 Electron 自定义协议下多页跳转白屏
+  if (window.Bus && typeof Bus.keepAlive === "function") {
+    try { Bus.keepAlive(); } catch (error) { /* ignore */ }
+  }
+  if (window.Nav && Nav.go) Nav.go("./kiosk/index.html");
+  else location.assign(assetUrl("./kiosk/index.html"));
 }
 
 async function runUpdateThenGo() {
@@ -94,7 +98,7 @@ async function runUpdateThenGo() {
   }
   bootText.textContent = result && result.phase === "error" ? words.error : words.ready;
   await new Promise((resolve) => setTimeout(resolve, 350));
-  goStandby();
+  goKiosk();
 }
 
 hideBoot();
