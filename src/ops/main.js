@@ -44,7 +44,7 @@ const ZH = {
 
 const img = document.getElementById("home");
 const hits = document.getElementById("hits");
-let current = sessionStorage.getItem("spc-ops-lang") === "zh" ? ZH : EN;
+let current = Store.session.getItem("spc-ops-lang") === "zh" ? ZH : EN;
 
 function send(body) {
   return Bus.publish(body).catch(() => {});
@@ -71,7 +71,7 @@ function render() {
   hits.append(hit(current.switchLabel, current.switchX, 1.6, current.switchW, 3.1, () => {
     const next = current.lang === "en" ? ZH : EN;
     current = next;
-    sessionStorage.setItem("spc-ops-lang", next.lang);
+    Store.session.setItem("spc-ops-lang", next.lang);
     render();
     send("lang " + next.lang);
   }));
