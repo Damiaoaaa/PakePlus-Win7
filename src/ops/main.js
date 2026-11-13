@@ -46,6 +46,10 @@ const img = document.getElementById("home");
 const hits = document.getElementById("hits");
 let current = Store.session.getItem("spc-ops-lang") === "zh" ? ZH : EN;
 
+function assetUrl(rel) {
+  try { return new URL(rel, location.href).href; } catch (error) { return rel; }
+}
+
 function send(body) {
   return Bus.publish(body).catch(() => {});
 }
@@ -63,7 +67,7 @@ function hit(label, x, y, w, h, onClick) {
 }
 
 function render() {
-  img.src = current.svg;
+  img.src = assetUrl(current.svg);
   img.alt = current.lang === "zh" ? "中文首页" : "English home";
   document.documentElement.lang = current.lang === "zh" ? "zh-Hant" : "en";
   hits.replaceChildren();
@@ -90,5 +94,12 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+img.onerror = function () {
+  document.body.style.background = "#071633";
+  console.error("ops svg failed", img.src);
+};
+
 render();
-Bus.ensureHost().catch(() => {});
+if (window.Bus && typeof Bus.ensureHost === "function") {
+  Bus.ensureHost().catch((error) => console.error("ensureHost", error));
+}
