@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>内容屏</title>
+  <script src="../shared/fonts.js"></script>
+  <link rel="stylesheet" href="kiosk.css">
+</head>
+<body>
+  <div class="stage">
+    <div class="board">
+      <div id="standby-view">
+        <video id="home-video" muted loop playsinline preload="auto"></video>
+        <p id="standby-fallback" class="standby-fallback" hidden>待机画面加载中…</p>
+      </div>
+      <div id="app" class="lang-zh" hidden></div>
+    </div>
+  </div>
+  <script src="../shared/store.js"></script>
+  <script src="../shared/nav.js"></script>
+  <script src="../shared/bus.js"></script>
+  <script src="../shared/update.js"></script>
+  <script src="../shared/boot.js"></script>
+  <script src="../shared/alumni.js"></script>
+  <script src="../shared/sync.js"></script>
+  <script src="../shared/peerjs.min.js"></script>
+  <script src="kiosk.js"></script>
+</body>
+</html>
