@@ -5,8 +5,20 @@ const statusEl = document.getElementById("status");
 const startBtn = document.getElementById("start");
 const refreshBtn = document.getElementById("refresh-ip");
 
+if (!window.Store) {
+  const mem = { local: Object.create(null), session: Object.create(null) };
+  function make(kind) {
+    return {
+      getItem: function (key) { return Object.prototype.hasOwnProperty.call(mem[kind], key) ? mem[kind][key] : null; },
+      setItem: function (key, value) { mem[kind][key] = String(value); },
+      removeItem: function (key) { delete mem[kind][key]; }
+    };
+  }
+  window.Store = { local: make("local"), session: make("session") };
+}
+
 const DEFAULT_PORT = 9100;
-let activePort = Number(localStorage.getItem("kiosk-home-port")) || DEFAULT_PORT;
+let activePort = Number(Store.local.getItem("kiosk-home-port")) || DEFAULT_PORT;
 portEl.textContent = String(activePort);
 
 let started = false;
@@ -31,15 +43,15 @@ function setActivePort(nextPort) {
   activePort = Number(nextPort) || DEFAULT_PORT;
   portEl.textContent = String(activePort);
   try {
-    localStorage.setItem("kiosk-home-port", String(activePort));
+    Store.local.setItem("kiosk-home-port", String(activePort));
   } catch (error) { /* ignore */ }
 }
 
 function rememberIp(ip) {
   displayHint(ip);
   try {
-    localStorage.setItem("kiosk-home-ip", ip);
-    localStorage.setItem("kiosk-home-port", String(activePort));
+    Store.local.setItem("kiosk-home-ip", ip);
+    Store.local.setItem("kiosk-home-port", String(activePort));
   } catch (error) { /* ignore */ }
 }
 
@@ -100,7 +112,7 @@ async function detectIp() {
     refreshBtn.disabled = false;
   }
 
-  const saved = localStorage.getItem("kiosk-home-ip") || "";
+  const saved = Store.local.getItem("kiosk-home-ip") || "";
   if (isLanIp(saved) && !currentIp()) {
     ipEl.value = saved;
     displayHint(saved);
@@ -141,7 +153,7 @@ startBtn.addEventListener("click", async () => {
   statusEl.textContent = "正在本机启动服务…";
   try {
     await ensurePeer();
-    const savedIp = currentIp() || localStorage.getItem("kiosk-home-ip") || "";
+    const savedIp = currentIp() || Store.local.getItem("kiosk-home-ip") || "";
     const connectIp = isLanIp(savedIp) ? savedIp : (savedIp || "127.0.0.1");
     const detectPromise = detectIp().catch(() => currentIp());
     const usedPort = await Bus.hostStart(connectIp, DEFAULT_PORT, (msg) => {
