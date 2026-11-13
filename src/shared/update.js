@@ -77,7 +77,7 @@
 
   function loadCached() {
     try {
-      const raw = localStorage.getItem(CACHE_KEY);
+      const raw = Store.local.getItem(CACHE_KEY);
       if (!raw) return null;
       const payload = JSON.parse(raw);
       return hasPeople(payload) ? payload : null;
@@ -88,8 +88,8 @@
 
   function saveCache(payload) {
     try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
-      localStorage.setItem(STAMP_KEY, stampOf(payload));
+      Store.local.setItem(CACHE_KEY, JSON.stringify(payload));
+      Store.local.setItem(STAMP_KEY, stampOf(payload));
     } catch (error) { /* 缓存写失败时仍返回内存中的资料 */ }
   }
 
@@ -109,7 +109,7 @@
     let remote = null;
     try { remote = await fetchRemote(); } catch (error) { remote = null; }
 
-    const oldStamp = localStorage.getItem(STAMP_KEY) || (local ? stampOf(local) : "");
+    const oldStamp = Store.local.getItem(STAMP_KEY) || (local ? stampOf(local) : "");
     if (remote && hasPeople(remote) && stampOf(remote) !== oldStamp) {
       say("updating");
       saveCache(remote);
