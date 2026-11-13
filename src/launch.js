@@ -5,8 +5,20 @@ const connectBtn = document.getElementById("connect");
 const boot = document.getElementById("boot");
 const bootText = document.getElementById("boot-text");
 
+if (!window.Store) {
+  const mem = { local: Object.create(null), session: Object.create(null) };
+  function make(kind) {
+    return {
+      getItem: function (key) { return Object.prototype.hasOwnProperty.call(mem[kind], key) ? mem[kind][key] : null; },
+      setItem: function (key, value) { mem[kind][key] = String(value); },
+      removeItem: function (key) { delete mem[kind][key]; }
+    };
+  }
+  window.Store = { local: make("local"), session: make("session") };
+}
+
 try {
-  const saved = JSON.parse(localStorage.getItem("kiosk-link") || "null");
+  const saved = JSON.parse(Store.local.getItem("kiosk-link") || "null");
   if (saved && saved.host) hostEl.value = saved.host;
   if (saved && saved.port) portEl.value = saved.port;
 } catch (error) { /* ignore */ }
@@ -63,7 +75,7 @@ async function runUpdateThenGo() {
   }
   bootText.textContent = result && result.phase === "error" ? words.error : words.ready;
   await new Promise((resolve) => setTimeout(resolve, 350));
-  location.href = "./standby/";
+  location.href = "./standby/index.html";
 }
 
 // 确保打开时遮罩一定隐藏
