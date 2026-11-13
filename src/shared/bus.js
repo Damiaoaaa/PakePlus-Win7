@@ -1,4 +1,15 @@
 (function () {
+  if (!window.Store) {
+    const mem = { local: Object.create(null), session: Object.create(null) };
+    function make(kind) {
+      return {
+        getItem: function (key) { return Object.prototype.hasOwnProperty.call(mem[kind], key) ? mem[kind][key] : null; },
+        setItem: function (key, value) { mem[kind][key] = String(value); },
+        removeItem: function (key) { delete mem[kind][key]; }
+      };
+    }
+    window.Store = { local: make("local"), session: make("session") };
+  }
   let role = "";
   let peer = null;
   let conn = null;
@@ -8,7 +19,7 @@
   let started = false;
   let closed = false;
   let suppressReconnect = 0;
-  let seq = Number(sessionStorage.getItem("spc-cmd-seq") || "0") || 0;
+  let seq = Number(Store.session.getItem("spc-cmd-seq") || "0") || 0;
   let onCommand = null;
   let pairWaiters = [];
 
@@ -168,8 +179,8 @@
     hostIp = String(ip || "").trim();
     port = Number(nextPort) || 9100;
     started = true;
-    localStorage.setItem("kiosk-home-ip", hostIp);
-    localStorage.setItem("kiosk-home-port", String(port));
+    Store.local.setItem("kiosk-home-ip", hostIp);
+    Store.local.setItem("kiosk-home-port", String(port));
     peer = new Peer(peerId(hostIp, port), {
       debug: 0,
       config: {
@@ -196,8 +207,8 @@
   }
 
   async function ensureHost() {
-    const ip = localStorage.getItem("kiosk-home-ip");
-    const nextPort = Number(localStorage.getItem("kiosk-home-port")) || 9100;
+    const ip = Store.local.getItem("kiosk-home-ip");
+    const nextPort = Number(Store.local.getItem("kiosk-home-port")) || 9100;
     if (!ip) throw new Error("首页尚未启动");
     if (peer && !peer.destroyed && role === "host") return;
     await hostStart(ip, nextPort);
@@ -209,7 +220,7 @@
     role = "client";
     hostIp = String(ip || "").trim();
     port = Number(nextPort) || 9100;
-    localStorage.setItem("kiosk-link", JSON.stringify({ host: hostIp, port: port }));
+    Store.local.setItem("kiosk-link", JSON.stringify({ host: hostIp, port: port }));
     peer = new Peer({
       debug: 0,
       config: {
@@ -247,7 +258,7 @@
   }
 
   async function ensureClient() {
-    const saved = JSON.parse(localStorage.getItem("kiosk-link") || "null");
+    const saved = JSON.parse(Store.local.getItem("kiosk-link") || "null");
     if (!saved || !saved.host || closed) return;
     if (conn && conn.open) return;
     let lastError = null;
@@ -276,7 +287,7 @@
     }
     if (!conn || !conn.open) throw new Error("内容屏未连接");
     seq += 1;
-    sessionStorage.setItem("spc-cmd-seq", String(seq));
+    Store.session.setItem("spc-cmd-seq", String(seq));
     const packet = { type: "cmd", seq: seq, command: String(command || ""), at: Date.now() };
     conn.send(packet);
     return packet;
@@ -294,7 +305,7 @@
   }
 
   function pairStatus() {
-    return { started: started || !!localStorage.getItem("kiosk-home-ip"), paired: paired };
+    return { started: started || !!Store.local.getItem("kiosk-home-ip"), paired: paired };
   }
 
   function disconnect() {
