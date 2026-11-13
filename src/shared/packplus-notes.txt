@@ -1,10 +1,16 @@
 PackPlus / PakePlus 打包说明（首页）
 
 1. 更多配置：勾选「TauriApi」
-2. additionalBrowserArgs 留空
-3. 不要依赖 run_command：当前 PackPlus ACL 会拦截该命令
-4. 首页与内容屏通过 PeerJS（WebRTC）局域网直连，需能访问外网 STUN（首次建连）
-5. 重新打包后再测「一键启动服务」
+2. Electron（ele）版必填 additionalBrowserArgs：
+   --touch-events=enabled
+   （触摸屏否则常出现只有触摸反馈、点不出 click）
+3. 窗口建议：
+   - acceptFirstMouse = true
+   - focus = true
+   - 竖屏 1080×1920；maxHeight 不要低于 1920（曾误设 1080 会压扁窗口）
+4. 不要依赖 run_command：当前 PackPlus ACL 会拦截该命令
+5. 首页与内容屏通过 PeerJS（WebRTC）局域网直连，需能访问外网 STUN（首次建连）
+6. 改完配置后重新打包再测
 
 关闭窗口会自动断开 Peer 连接。
 中英文在同一页内切换，不会拆掉连接。
