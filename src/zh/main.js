@@ -40,7 +40,7 @@ const hits = document.getElementById("hits");
 hits.append(hit("主頁", 3.7, 1.4, 10.4, 3.1, () => send("home")));
 hits.append(hit("English", 90.6, 1.6, 5.5, 3.1, () => {
   send("lang en");
-  location.href = "../en/";
+  location.href = "../en/index.html";
 }));
 CATS.forEach((cat) => {
   hits.append(hit(cat.label, 10.8, cat.y, 79.17, cat.h, () => send("list zh " + cat.key)));
