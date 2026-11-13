@@ -10,29 +10,35 @@
       .replace(/^(pakeplus:\/\/app)([A-Za-z]):\//i, "$1/$2:/");
   }
 
+  function siteRoot() {
+    let href = fixProtocol(location.href).split("#")[0].split("?")[0];
+    href = href.replace(/\/(kiosk|standby|en-list|zh-list|en-detail|zh-detail)\/[^/]*$/i, "/");
+    href = href.replace(/\/[^/]*\.html?$/i, "/");
+    if (!/[\\/]$/.test(href)) href += "/";
+    return href;
+  }
+
   function rootUrl() {
-    if (window.Nav && Nav.resolve) {
-      try { return new URL(Nav.resolve("../")); } catch (error) { /* fall through */ }
-    }
-    const script = document.querySelector("script[src*='update.js']") || document.querySelector("script[src*='alumni.js']");
-    try {
-      if (script && script.src) return new URL("../", fixProtocol(script.src));
+    try { return new URL(siteRoot()); } catch (error) {
+      if (window.Nav && Nav.resolve) {
+        try { return new URL(Nav.resolve("../")); } catch (err) { /* fall through */ }
+      }
       return new URL("./", fixProtocol(location.href));
-    } catch (error) {
-      return new URL("./", location.href);
     }
   }
 
   function dataJsonUrl() {
-    try { return new URL("data/alumni.json", rootUrl()).href; } catch (error) {
-      return (window.Nav && Nav.resolve) ? Nav.resolve("../data/alumni.json") : "../data/alumni.json";
-    }
+    return siteRoot() + "data/alumni.json";
   }
 
   function localMediaUrl(rel) {
-    try { return new URL("data/media/" + rel, rootUrl()).href; } catch (error) {
-      return (window.Nav && Nav.resolve) ? Nav.resolve("../data/media/" + rel) : "../data/media/" + rel;
-    }
+    const clean = String(rel || "").replace(/^\/+/, "");
+    return siteRoot() + "data/media/" + clean;
+  }
+
+  function remoteMediaUrl(rel) {
+    const clean = String(rel || "").replace(/^\/+/, "");
+    return MEDIA_BASE + "data/media/" + clean;
   }
 
   function bundledPayload() {
@@ -64,9 +70,14 @@
           const rel = normalizeMediaPath(person[field]);
           if (!rel) {
             person[field] = "";
+            person[field + "_rel"] = "";
             return;
           }
-          person[field] = useLocal ? localMediaUrl(rel) : (MEDIA_BASE + rel);
+          person[field + "_rel"] = rel;
+          // Electron 自定义协议下本地文件常 404，优先可访问的线上图，本地作备用
+          person[field] = useLocal ? localMediaUrl(rel) : remoteMediaUrl(rel);
+          person[field + "_remote"] = remoteMediaUrl(rel);
+          person[field + "_local"] = localMediaUrl(rel);
         });
       });
     });
@@ -170,9 +181,31 @@
     return { phase: "ready", updated: false, payload: payload };
   }
 
+  function rehydrate(payload) {
+    const copy = JSON.parse(JSON.stringify(payload || { data: {} }));
+    const data = copy.data || {};
+    Object.keys(data).forEach((cat) => {
+      (data[cat] || []).forEach((person) => {
+        ["exhibition_thumbnail", "exhibition_video"].forEach((field) => {
+          const rel = person[field + "_rel"] || normalizeMediaPath(person[field]);
+          if (!rel) {
+            person[field] = "";
+            person[field + "_rel"] = "";
+            return;
+          }
+          person[field + "_rel"] = rel;
+          person[field + "_local"] = localMediaUrl(rel);
+          person[field + "_remote"] = remoteMediaUrl(rel);
+          person[field] = person[field + "_local"];
+        });
+      });
+    });
+    return copy;
+  }
+
   async function current() {
     const cached = loadCached();
-    if (cached) return cached;
+    if (cached) return rehydrate(cached);
 
     const embedded = bundledPayload();
     if (embedded) {
@@ -199,5 +232,13 @@
     }
   }
 
-  window.Update = { refresh: refresh, current: current, dataJsonUrl: dataJsonUrl };
+  window.Update = {
+    refresh: refresh,
+    current: current,
+    dataJsonUrl: dataJsonUrl,
+    localMediaUrl: localMediaUrl,
+    remoteMediaUrl: remoteMediaUrl,
+    siteRoot: siteRoot
+  };
 })();
+
