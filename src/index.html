@@ -1,11 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Document</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>内容屏连接</title>
+  <link rel="stylesheet" href="shared/fonts.css">
+  <link rel="stylesheet" href="launch.css">
+</head>
+<body>
+  <main class="panel">
+    <p class="eyebrow">St. Paul's College · 内容端</p>
+    <h1>连接首页服务</h1>
+    <p class="lead">两台电脑连接同一 WiFi。填写首页展示的内网 IP 与端口，连接成功后会检查更新并进入视频首页。</p>
+
+    <label class="field">
+      <span>内网地址</span>
+      <input id="host" type="text" inputmode="decimal" placeholder="例如 192.168.1.10" autocomplete="off">
+    </label>
+    <label class="field">
+      <span>连接端口</span>
+      <input id="port" type="number" min="1" max="65535" value="9100">
+    </label>
+
+    <p id="status" class="status">请输入首页端的内网地址与端口</p>
+    <button id="connect" type="button">连接</button>
+
+    <div id="boot" class="boot" hidden aria-hidden="true">
+      <div class="spin"></div>
+      <p id="boot-text">正在检查更新</p>
+    </div>
+  </main>
+  <script src="shared/bus.js"></script>
+  <script src="shared/update.js"></script>
+  <script src="launch.js"></script>
+</body>
 </html>
