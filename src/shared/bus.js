@@ -7,7 +7,8 @@
   let paired = false;
   let started = false;
   let closed = false;
-  let seq = Number(sessionStorage.getItem("spc-cmd-seq") || "0") || 0;
+  let seq = 0;
+  try { seq = Number(sessionStorage.getItem("spc-cmd-seq") || "0") || 0; } catch (error) { seq = 0; }
   let onCommand = null;
   let pairWaiters = [];
   let peerReady = false;
