@@ -4,18 +4,42 @@
   const CACHE_KEY = "spc-alumni-cache";
   const STAMP_KEY = "spc-alumni-stamp";
 
+  function fixProtocol(href) {
+    return String(href || "")
+      .replace(/\\/g, "/")
+      .replace(/^(pakeplus:\/\/app)([A-Za-z]):\//i, "$1/$2:/");
+  }
+
   function rootUrl() {
+    if (window.Nav && Nav.resolve) {
+      try { return new URL(Nav.resolve("../")); } catch (error) { /* fall through */ }
+    }
     const script = document.querySelector("script[src*='update.js']") || document.querySelector("script[src*='alumni.js']");
-    if (script && script.src) return new URL("../", script.src);
-    return new URL("./", location.href);
+    try {
+      if (script && script.src) return new URL("../", fixProtocol(script.src));
+      return new URL("./", fixProtocol(location.href));
+    } catch (error) {
+      return new URL("./", location.href);
+    }
   }
 
   function dataJsonUrl() {
-    return new URL("data/alumni.json", rootUrl()).href;
+    try { return new URL("data/alumni.json", rootUrl()).href; } catch (error) {
+      return (window.Nav && Nav.resolve) ? Nav.resolve("../data/alumni.json") : "../data/alumni.json";
+    }
   }
 
   function localMediaUrl(rel) {
-    return new URL("data/media/" + rel, rootUrl()).href;
+    try { return new URL("data/media/" + rel, rootUrl()).href; } catch (error) {
+      return (window.Nav && Nav.resolve) ? Nav.resolve("../data/media/" + rel) : "../data/media/" + rel;
+    }
+  }
+
+  function bundledPayload() {
+    if (window.__ALUMNI_BUNDLE__ && hasPeople(window.__ALUMNI_BUNDLE__)) {
+      return applyMedia(window.__ALUMNI_BUNDLE__, true);
+    }
+    return null;
   }
 
   function normalizeMediaPath(value) {
@@ -70,9 +94,28 @@
   }
 
   async function loadBundled() {
-    const response = await fetchWithTimeout(dataJsonUrl(), 8000);
-    if (!response.ok) throw new Error(String(response.status));
-    return applyMedia(await response.json(), true);
+    const embedded = bundledPayload();
+    if (embedded) return embedded;
+
+    const urls = [dataJsonUrl()];
+    if (window.Nav && Nav.resolve) {
+      ["../data/alumni.json", "./../data/alumni.json", "data/alumni.json"].forEach((rel) => {
+        const url = Nav.resolve(rel);
+        if (urls.indexOf(url) < 0) urls.push(url);
+      });
+    }
+
+    let lastError = null;
+    for (let i = 0; i < urls.length; i += 1) {
+      try {
+        const response = await fetchWithTimeout(urls[i], 8000);
+        if (!response.ok) throw new Error(String(response.status));
+        return applyMedia(await response.json(), true);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError || new Error("bundled missing");
   }
 
   function loadCached() {
@@ -130,6 +173,13 @@
   async function current() {
     const cached = loadCached();
     if (cached) return cached;
+
+    const embedded = bundledPayload();
+    if (embedded) {
+      saveCache(embedded);
+      return embedded;
+    }
+
     try {
       const bundled = await loadBundled();
       if (hasPeople(bundled)) {
@@ -137,10 +187,16 @@
         return bundled;
       }
     } catch (error) { /* 继续尝试线上 */ }
-    const remote = await fetchRemote();
-    if (!hasPeople(remote)) throw new Error("empty");
-    saveCache(remote);
-    return remote;
+
+    try {
+      const remote = await fetchRemote();
+      if (!hasPeople(remote)) throw new Error("empty");
+      saveCache(remote);
+      return remote;
+    } catch (error) {
+      if (embedded) return embedded;
+      throw error;
+    }
   }
 
   window.Update = { refresh: refresh, current: current, dataJsonUrl: dataJsonUrl };
