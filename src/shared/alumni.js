@@ -170,14 +170,32 @@
       if (window.Update) {
         try { payload = await Update.current(); } catch (error) { payload = null; }
       }
+      if ((!payload || !payload.data) && window.__ALUMNI_BUNDLE__ && window.__ALUMNI_BUNDLE__.data) {
+        payload = window.__ALUMNI_BUNDLE__;
+      }
       if (!payload || !payload.data) {
-        const script = document.querySelector("script[src*='alumni.js']");
-        const url = script && script.src
-          ? new URL("../data/alumni.json", script.src).href
-          : "../data/alumni.json";
-        const response = await fetch(url, { cache: "no-store" });
-        if (!response.ok) throw new Error(String(response.status));
-        payload = await response.json();
+        const urls = [];
+        if (window.Nav && Nav.resolve) {
+          urls.push(Nav.resolve("../data/alumni.json"));
+        }
+        try {
+          const script = document.querySelector("script[src*='alumni.js']");
+          if (script && script.src) urls.push(new URL("../data/alumni.json", script.src.replace(/\\/g, "/")).href);
+        } catch (error) { /* ignore */ }
+        urls.push("../data/alumni.json");
+        let lastError = null;
+        for (let i = 0; i < urls.length; i += 1) {
+          try {
+            const response = await fetch(urls[i], { cache: "no-store" });
+            if (!response.ok) throw new Error(String(response.status));
+            payload = await response.json();
+            lastError = null;
+            break;
+          } catch (error) {
+            lastError = error;
+          }
+        }
+        if (lastError) throw lastError;
       }
       records = payload.data || {};
       loadError = "";
