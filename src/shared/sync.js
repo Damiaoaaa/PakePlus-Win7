@@ -15,21 +15,31 @@
     return null;
   }
 
+  function scriptUrl(src) {
+    if (window.Nav && Nav.resolve) return Nav.resolve(src);
+    try { return new URL(src, location.href.replace(/\\/g, "/")).href; } catch (error) { return src; }
+  }
+
   function loadScript(src) {
     return new Promise((resolve, reject) => {
       if (typeof Peer !== "undefined") {
         resolve();
         return;
       }
+      const href = scriptUrl(src);
       const el = document.createElement("script");
-      el.src = src;
+      el.src = href;
       el.onload = () => resolve();
-      el.onerror = () => reject(new Error("PeerJS load failed"));
+      el.onerror = () => reject(new Error("PeerJS load failed: " + href));
       document.head.appendChild(el);
     });
   }
 
   function watch(apply) {
+    if (!window.Bus) {
+      console.error("Sync.watch: Bus missing");
+      return;
+    }
     Bus.watch((packet) => {
       const command = parse(packet.command);
       if (!command) return;
@@ -38,8 +48,8 @@
     });
     loadScript("../shared/peerjs.min.js")
       .then(() => Bus.ensureClient())
-      .catch(() => {});
+      .catch((error) => console.error("Sync reconnect failed", error));
   }
 
-  window.Sync = { watch: watch };
+  window.Sync = { watch: watch, parse: parse };
 })();
