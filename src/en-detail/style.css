@@ -1,0 +1,246 @@
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #0e0e0e;
+  overflow: hidden;
+  font-family: "Poppins", "Source Han Serif TC", serif;
+  user-select: none;
+}
+.stage {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.board {
+  position: relative;
+  height: 100dvh;
+  width: min(100vw, calc(100dvh * 1080 / 1920));
+  background: #071633;
+  overflow: hidden;
+  container-type: size;
+  touch-action: manipulation;
+}
+#app {
+  position: absolute;
+  inset: 0;
+  color: #f2e9e1;
+  background: #041428 url("../assets/bg.jpg") center / cover no-repeat;
+  font-family: "Poppins", "Source Han Serif TC", serif;
+}
+.title {
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  top: 1.8%;
+  height: 8.2%;
+  margin: 0;
+  padding: 0.2cqh 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: 0.05em;
+  background-image: linear-gradient(180deg, #f7efd8 0%, #e6d0a4 42%, #c4a36d 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: drop-shadow(0 0.12em 0 rgba(0, 0, 0, 0.45));
+  z-index: 2;
+  pointer-events: none;
+}
+.lang-en .title {
+  font-family: "Poppins", sans-serif;
+  font-size: 4.4cqh;
+}
+.lang-zh .title {
+  font-family: "Source Han Serif TC", "Poppins", serif;
+  font-size: 5.6cqh;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.arrow {
+  position: absolute;
+  top: 2.4%;
+  width: 8.2%;
+  aspect-ratio: 1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(198, 210, 224, 0.96);
+  color: #1a3a66;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 0.25cqh 0.6cqh rgba(0, 0, 0, 0.3);
+  z-index: 3;
+}
+.arrow svg { width: 48%; height: 48%; }
+.arrow.prev { left: 3.2%; }
+.arrow.next { right: 3.2%; }
+.arrow:disabled { opacity: 0.38; cursor: default; }
+.sheet-wrap {
+  position: absolute;
+  left: 10.37%;
+  top: 11.6%;
+  width: 81.39%;
+  height: 71.2%;
+  background: #f7f5f2;
+  border: 1.5px solid #d0b683;
+  border-radius: 1.4cqw;
+  box-shadow: 0 0.45cqh 1.2cqh rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+}
+.sheet {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  padding: 4.6% 9.5% 5.2% 6.8%;
+  color: #141c38;
+  scrollbar-width: none;
+}
+.sheet::-webkit-scrollbar { display: none; }
+.who {
+  display: grid;
+  grid-template-columns: 24.92% 1fr;
+  column-gap: 4.1%;
+  align-items: start;
+  margin-bottom: 2.2cqh;
+}
+.frame {
+  border-radius: 0.9cqw;
+  border: 2px solid #c9a86a;
+  overflow: hidden;
+  background: #e6e0d4;
+}
+.frame img,
+.frame video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+  transform: scale(1.08);
+  display: block;
+  border: 0;
+}
+.who .frame {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 768 / 952;
+  border-radius: 0.35cqw;
+  border: 1.5px solid #b89a62;
+  background: #e6e1d8;
+  box-shadow: inset 0 0 0 1px rgba(70, 50, 20, 0.12);
+}
+.who .frame img,
+.who .frame video {
+  transform: scale(1.04);
+  object-position: center top;
+}
+.view-detail .name, .view-detail .life {
+  margin: 0;
+  color: #141c38;
+  font-size: 3.05cqw;
+  font-weight: 700;
+  line-height: 1.28;
+  text-align: left;
+}
+.view-detail .life {
+  margin-top: 0.25cqh;
+}
+.view-detail .meta {
+  margin: 0.7cqh 0 0;
+  color: #8a94a0;
+  font-size: 2.35cqw;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: left;
+}
+.bio p {
+  margin: 0 0 0.55em;
+  font-size: 2.38cqw;
+  line-height: 1.6;
+  color: #1a2438;
+  text-align: left;
+}
+.lang-zh .bio p {
+  font-family: "Source Han Serif TC", "Poppins", serif;
+  text-align: justify;
+  text-justify: inter-ideograph;
+  text-align-last: left;
+}
+.bio a { color: #01437b; text-decoration: underline; }
+.pill {
+  position: absolute;
+  top: 87.4%;
+  width: 37.5%;
+  height: 5.2%;
+  margin: 0;
+  padding: 0 1.2cqw;
+  border-radius: 0.55cqh;
+  border: 2.5px solid transparent;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 220, 0.34), rgba(255, 236, 196, 0) 32%),
+    linear-gradient(180deg, #245286 0%, #14345c 42%, #0b1e38 100%) padding-box,
+    linear-gradient(180deg, #f3e2b8 0%, #d0b683 38%, #9a7540 100%) border-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 220, 0.55),
+    0 0 1.1cqh rgba(212, 181, 120, 0.42),
+    0 0.35cqh 0.9cqh rgba(0, 0, 0, 0.42);
+  color: #f7f3ea;
+  font-family: "Poppins", "Source Han Serif TC", serif;
+  font-size: 2.55cqw;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
+  cursor: pointer;
+}
+.lang-zh .pill { letter-spacing: 0.28em; font-size: 2.75cqw; }
+.pill.back { left: 10.5%; }
+.pill.home { left: 52%; }
+.pill:active { filter: brightness(1.12); }
+.rail {
+  position: absolute;
+  right: 2.4%;
+  top: 5.5%;
+  width: 2.3cqw;
+  height: 88%;
+  border: 1.5px solid #d0b683;
+  border-radius: 999px;
+  pointer-events: auto;
+  z-index: 2;
+}
+.thumb {
+  position: absolute;
+  left: 50%;
+  width: 68%;
+  min-height: 14cqh;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f4e7c8, #c6a56d 55%, #b89560);
+  pointer-events: auto;
+  touch-action: none;
+  cursor: grab;
+}
+.thumb:active { cursor: grabbing; }
+.thumb i {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 0.5cqw solid transparent;
+  border-right: 0.5cqw solid transparent;
+}
+.thumb .up { top: 0.65cqh; border-bottom: 0.58cqw solid #f8f4ea; }
+.thumb .down { bottom: 0.65cqh; border-top: 0.58cqw solid #f8f4ea; }
+.status {
+  margin: 10cqh 10cqw;
+  text-align: center;
+  font-size: 2.8cqw;
+  line-height: 1.5;
+  color: #141c38;
+}
