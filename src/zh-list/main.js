@@ -4,16 +4,16 @@ const cat = new URLSearchParams(location.search).get("cat") || "";
 function onCommand(command) {
   Store.session.setItem("cmd", command.seq);
   if (command.type === "home") {
-    location.href = "../standby/index.html";
+    Nav.go("../standby/index.html");
     return;
   }
   if (command.type === "lang") {
     if (command.lang === lang) return;
-    location.href = "../" + command.lang + "-list/index.html?cat=" + encodeURIComponent(cat);
+    Nav.go("../" + command.lang + "-list/index.html?cat=" + encodeURIComponent(cat));
     return;
   }
   if (command.lang === lang && command.cat === cat) return;
-  location.href = "../" + command.lang + "-list/index.html?cat=" + encodeURIComponent(command.cat);
+  Nav.go("../" + command.lang + "-list/index.html?cat=" + encodeURIComponent(command.cat));
 }
 
 function render() {
@@ -49,14 +49,14 @@ function render() {
       Alumni.fillIdentity(text, person, lang);
       card.append(Alumni.photoOf(person), text);
       card.addEventListener("click", () => {
-        location.href = "../" + lang + "-detail/index.html?cat=" + encodeURIComponent(cat) + "&id=" + encodeURIComponent(person.id);
+        Nav.go("../" + lang + "-detail/index.html?cat=" + encodeURIComponent(cat) + "&id=" + encodeURIComponent(person.id));
       });
       scroller.append(card);
     });
     scroller.append(Object.assign(document.createElement("div"), { className: "end-space" }));
   }
   const back = Alumni.pill(Alumni.COPY[lang].back, "back", () => {
-    location.href = "../standby/index.html";
+    Nav.go("../standby/index.html");
   });
   app.append(scroller, Alumni.mountRail(scroller), back);
   document.title = meta.zh;
