@@ -259,14 +259,47 @@
     return name;
   }
 
+  function mediaCandidates(person, field) {
+    const list = [];
+    function push(url) {
+      const text = String(url || "").trim();
+      if (!text || list.indexOf(text) >= 0) return;
+      list.push(text);
+    }
+    push(person[field + "_local"]);
+    push(person[field]);
+    push(person[field + "_remote"]);
+    const rel = person[field + "_rel"] || "";
+    if (rel && window.Update) {
+      try { push(Update.localMediaUrl(rel)); } catch (error) { /* ignore */ }
+      try { push(Update.remoteMediaUrl(rel)); } catch (error) { /* ignore */ }
+    }
+    if (rel && window.Nav && Nav.resolve) {
+      push(Nav.resolve("../data/media/" + rel));
+      push(Nav.resolve("../../data/media/" + rel));
+    }
+    return list;
+  }
+
+  function bindSrc(el, candidates) {
+    let index = 0;
+    const apply = function () {
+      if (index >= candidates.length) return;
+      el.src = candidates[index++];
+    };
+    el.addEventListener("error", function () {
+      if (index < candidates.length) apply();
+    });
+    apply();
+  }
+
   function photoOf(person, options) {
     const frame = document.createElement("div");
     frame.className = "frame";
     const preferVideo = options && options.preferVideo;
-    const videoUrl = preferVideo ? plain(person.exhibition_video) : "";
-    if (videoUrl) {
+    const videoCandidates = preferVideo ? mediaCandidates(person, "exhibition_video") : [];
+    if (videoCandidates.length) {
       const video = document.createElement("video");
-      video.src = videoUrl;
       video.muted = true;
       video.loop = true;
       video.autoplay = true;
@@ -275,7 +308,9 @@
       video.setAttribute("webkit-playsinline", "");
       video.preload = "metadata";
       video.draggable = false;
-      if (person.exhibition_thumbnail) video.poster = person.exhibition_thumbnail;
+      const posterCandidates = mediaCandidates(person, "exhibition_thumbnail");
+      if (posterCandidates[0]) video.poster = posterCandidates[0];
+      bindSrc(video, videoCandidates);
       frame.append(video);
       const tryPlay = () => { video.play().catch(() => {}); };
       video.addEventListener("loadeddata", tryPlay, { once: true });
@@ -285,7 +320,7 @@
     const photo = document.createElement("img");
     photo.alt = "";
     photo.draggable = false;
-    photo.src = person.exhibition_thumbnail || "";
+    bindSrc(photo, mediaCandidates(person, "exhibition_thumbnail"));
     frame.append(photo);
     return frame;
   }
