@@ -22,13 +22,13 @@
   }
 
   Sync.watch((command) => {
-    sessionStorage.setItem("cmd", command.seq);
+    Store.session.setItem("cmd", command.seq);
     if (command.type === "home") {
       playLoop();
       return;
     }
     if (command.type === "list") {
-      location.href = "../" + command.lang + "-list/?cat=" + encodeURIComponent(command.cat);
+      location.href = "../" + command.lang + "-list/index.html?cat=" + encodeURIComponent(command.cat);
     }
   });
 })();
