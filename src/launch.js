@@ -41,23 +41,42 @@ function hideBoot() {
   boot.hidden = true;
 }
 
+function assetUrl(rel) {
+  if (window.Nav && Nav.resolve) return Nav.resolve(rel);
+  try { return new URL(rel, location.href.replace(/\\/g, "/")).href; } catch (error) { return rel; }
+}
+
 function loadScript(src) {
+  const href = assetUrl(src);
   return new Promise((resolve, reject) => {
-    if (document.querySelector('script[src="' + src + '"]')) {
+    const existing = document.querySelector('script[src="' + src + '"], script[src="' + href + '"]');
+    if (existing) {
       resolve();
       return;
     }
     const el = document.createElement("script");
-    el.src = src;
+    el.src = href;
     el.onload = () => resolve();
-    el.onerror = () => reject(new Error("脚本加载失败"));
+    el.onerror = () => reject(new Error("脚本加载失败: " + src));
     document.head.appendChild(el);
   });
 }
 
+async function ensureBus() {
+  if (window.Bus) return window.Bus;
+  await loadScript("./shared/bus.js");
+  if (!window.Bus) throw new Error("通讯模块 Bus 未加载");
+  return window.Bus;
+}
+
 async function ensurePeer() {
   if (typeof Peer !== "undefined") return;
-  await loadScript("shared/peerjs.min.js");
+  await loadScript("./shared/peerjs.min.js");
+}
+
+function goStandby() {
+  if (window.Nav && Nav.go) Nav.go("./standby/index.html");
+  else location.assign(assetUrl("./standby/index.html"));
 }
 
 async function runUpdateThenGo() {
@@ -75,10 +94,9 @@ async function runUpdateThenGo() {
   }
   bootText.textContent = result && result.phase === "error" ? words.error : words.ready;
   await new Promise((resolve) => setTimeout(resolve, 350));
-  location.href = "./standby/index.html";
+  goStandby();
 }
 
-// 确保打开时遮罩一定隐藏
 hideBoot();
 
 connectBtn.addEventListener("click", async () => {
@@ -97,8 +115,9 @@ connectBtn.addEventListener("click", async () => {
   statusEl.textContent = "正在连接首页服务…";
 
   try {
+    const bus = await ensureBus();
     await ensurePeer();
-    await Bus.clientConnect(host, port);
+    await bus.clientConnect(host, port);
     statusEl.textContent = "连接成功，开始检查更新…";
     await runUpdateThenGo();
   } catch (error) {
