@@ -1,0 +1,10 @@
+PackPlus / PakePlus 打包说明（首页）
+
+1. 更多配置：勾选「TauriApi」
+2. additionalBrowserArgs 留空
+3. 不要依赖 run_command：当前 PackPlus ACL 会拦截该命令
+4. 首页与内容屏通过 PeerJS（WebRTC）局域网直连，需能访问外网 STUN（首次建连）
+5. 重新打包后再测「一键启动服务」
+
+关闭窗口会自动断开 Peer 连接。
+中英文在同一页内切换，不会拆掉连接。
