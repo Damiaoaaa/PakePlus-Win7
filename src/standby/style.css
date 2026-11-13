@@ -25,3 +25,17 @@ html, body {
   background: #000;
   pointer-events: none;
 }
+.fallback {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  padding: 8%;
+  color: #f2e9e1;
+  font-family: "Poppins", "Source Han Serif TC", serif;
+  font-size: 28px;
+  letter-spacing: 0.08em;
+  text-align: center;
+  background: #041428;
+}
