@@ -1,11 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Document</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>首页服务</title>
+  <link rel="stylesheet" href="shared/fonts.css">
+  <link rel="stylesheet" href="launch.css">
+</head>
+<body>
+  <main class="panel">
+    <p class="eyebrow">St. Paul's College · 控制端</p>
+    <h1>首页服务</h1>
+    <p class="lead">先点「一键启动服务」。把下方内网 IP 和端口填到内容屏。若未识别到，可手动填写。</p>
+
+    <section class="card">
+      <div class="row">
+        <span>本机服务</span>
+        <strong>127.0.0.1（本地）</strong>
+      </div>
+      <label class="field">
+        <span>给对方填写 · 内网 IP</span>
+        <div class="ip-line">
+          <input id="ip" type="text" inputmode="decimal" placeholder="例如 192.168.1.10" autocomplete="off">
+          <button id="refresh-ip" type="button">识别</button>
+        </div>
+      </label>
+      <div class="row highlight">
+        <span>给对方填写 · 端口</span>
+        <strong id="tcp-port">9100</strong>
+      </div>
+      <small id="ip-hint" class="hint">启动后会尝试自动识别；识别不到请手动输入 ipconfig 中的无线网卡 IPv4</small>
+    </section>
+
+    <p id="status" class="status">点击下方按钮在本机启动服务</p>
+    <button id="start" type="button">一键启动服务</button>
+  </main>
+  <script src="shared/bus.js"></script>
+  <script src="launch.js"></script>
+</body>
 </html>
