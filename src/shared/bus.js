@@ -308,13 +308,32 @@
     return { started: started || !!Store.local.getItem("kiosk-home-ip"), paired: paired };
   }
 
+  function keepAlive() {
+    try { Store.session.setItem("spc-nav-keep", "1"); } catch (error) { /* ignore */ }
+  }
+
+  function consumeKeepAlive() {
+    try {
+      const keep = Store.session.getItem("spc-nav-keep") === "1";
+      Store.session.removeItem("spc-nav-keep");
+      return keep;
+    } catch (error) {
+      return false;
+    }
+  }
+
   function disconnect() {
     closed = true;
     destroyPeer();
   }
 
-  window.addEventListener("pagehide", disconnect);
-  window.addEventListener("beforeunload", disconnect);
+  function onPageExit() {
+    if (consumeKeepAlive()) return;
+    disconnect();
+  }
+
+  window.addEventListener("pagehide", onPageExit);
+  window.addEventListener("beforeunload", onPageExit);
   try {
     if (window.__TAURI__ && window.__TAURI__.window && window.__TAURI__.window.getCurrentWindow) {
       window.__TAURI__.window.getCurrentWindow().onCloseRequested(() => {
@@ -334,7 +353,10 @@
     watch: watch,
     waitPaired: waitPaired,
     pairStatus: pairStatus,
+    keepAlive: keepAlive,
+    disconnect: disconnect,
     getPort: function () { return port; },
     getHostIp: function () { return hostIp; }
   };
 })();
+
