@@ -1,0 +1,39 @@
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background: #0e0e0e;
+  overflow: hidden;
+  font-family: "Poppins", "Source Han Serif TC", serif;
+  user-select: none;
+  position: fixed;
+  inset: 0;
+}
+/* stage / board 尺寸由 ../shared/stage.css 控制（1080×1920 自适应） */
+.board {
+  background: #071633;
+}
+#home {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+#hits { position: absolute; inset: 0; }
+#hits button {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 1.6cqw;
+  background: transparent;
+  cursor: pointer;
+}
+#hits button:active { background: rgba(255, 255, 255, 0.16); }
+#hits button:focus { outline: none; }
