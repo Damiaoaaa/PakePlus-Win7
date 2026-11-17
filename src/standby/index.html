@@ -1,0 +1,24 @@
+﻿<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>内容屏</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../shared/stage.css">
+</head>
+<body>
+  <div class="stage">
+    <div class="board">
+      <video id="home-video" muted loop playsinline preload="auto"></video>
+      <p id="standby-fallback" class="fallback" hidden>待机画面加载中…</p>
+    </div>
+  </div>
+  <script src="../shared/store.js"></script>
+  <script src="../shared/fullscreen.js"></script>
+  <script src="../shared/nav.js"></script>
+  <script src="../shared/bus.js"></script>
+  <script src="../shared/sync.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
