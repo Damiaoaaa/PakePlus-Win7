@@ -1,0 +1,39 @@
+﻿html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background: #0e0e0e;
+  overflow: hidden;
+  position: fixed;
+  inset: 0;
+}
+/* stage / board 尺寸由 ../shared/stage.css 控制（1080×1920 自适应） */
+.board {
+  background: #000;
+}
+#home-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+  pointer-events: none;
+}
+.fallback {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  padding: 8%;
+  color: #f2e9e1;
+  font-family: "Poppins", "Source Han Serif TC", serif;
+  font-size: 28px;
+  letter-spacing: 0.08em;
+  text-align: center;
+  background: rgba(4, 20, 40, 0.92);
+  z-index: 2;
+}
+.fallback[hidden] {
+  display: none !important;
+}
