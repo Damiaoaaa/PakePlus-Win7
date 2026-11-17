@@ -1,11 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Document</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>首页服务</title>
+  <script src="shared/fonts.js"></script>
+  <link rel="stylesheet" href="launch.css">
+</head>
+<body>
+  <main class="panel">
+    <p class="eyebrow">St. Paul's College · 控制端</p>
+    <h1>首页服务</h1>
+    <p class="lead">打开后自动启动。固定内网 <strong>10.124.19.128</strong>，端口 <strong>9100-9199</strong>，内容屏会自动连接。</p>
+
+    <section class="card">
+      <div class="row">
+        <span>本机服务</span>
+        <strong>自动启动</strong>
+      </div>
+      <label class="field">
+        <span>固定内网 IP</span>
+        <div class="ip-line">
+          <input id="ip" type="text" inputmode="decimal" value="10.124.19.128" autocomplete="off">
+          <button id="refresh-ip" type="button">恢复</button>
+        </div>
+      </label>
+      <div class="row highlight">
+        <span>当前端口</span>
+        <strong id="tcp-port">9100</strong>
+      </div>
+      <small id="ip-hint" class="hint">端口范围 9100-9199；若占用会自动改用下一个</small>
+    </section>
+
+    <p id="status" class="status">正在自动启动服务…</p>
+    <button id="start" type="button">重新启动服务</button>
+  </main>
+  <script src="./shared/store.js"></script>
+  <script src="./shared/fullscreen.js"></script>
+  <script src="./shared/nav.js"></script>
+  <script src="shared/bus.js"></script>
+  <script src="launch.js"></script>
+</body>
 </html>
