@@ -1,11 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Document</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>内容屏连接</title>
+  <script src="shared/fonts.js"></script>
+  <link rel="stylesheet" href="launch.css">
+</head>
+<body>
+  <main class="panel">
+    <p class="eyebrow">St. Paul's College · 内容端</p>
+    <h1>连接首页服务</h1>
+    <p class="lead">打开后自动连接固定内网 <strong>10.124.19.128</strong>，端口范围 <strong>9100-9199</strong>。连接成功后会检查更新并进入视频首页。</p>
+
+    <label class="field">
+      <span>内网地址</span>
+      <input id="host" type="text" inputmode="decimal" value="10.124.19.128" autocomplete="off">
+    </label>
+    <label class="field">
+      <span>起始端口</span>
+      <input id="port" type="number" min="9100" max="9199" value="9100">
+    </label>
+
+    <p id="status" class="status">正在自动连接…</p>
+    <button id="connect" type="button">重新连接</button>
+
+    <div id="boot" class="boot" hidden aria-hidden="true">
+      <div class="spin"></div>
+      <p id="boot-text">正在检查更新</p>
+    </div>
+  </main>
+  <script src="./shared/store.js"></script>
+  <script src="./shared/fullscreen.js"></script>
+  <script src="./shared/nav.js"></script>
+  <script src="./shared/bus.js"></script>
+  <script src="./shared/alumni-data.js"></script>
+  <script src="./shared/update.js"></script>
+  <script src="./launch.js"></script>
+</body>
 </html>
