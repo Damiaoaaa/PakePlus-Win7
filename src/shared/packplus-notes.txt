@@ -1,0 +1,23 @@
+PackPlus / PakePlus 打包说明（首页）
+
+1. 更多配置：勾选「TauriApi」
+2. Electron（ele）版建议 additionalBrowserArgs：
+   --touch-events=enabled
+3. 窗口建议（半屏常见坑）：
+   - acceptFirstMouse = true，focus = true
+   - 竖屏窗口必须 1080×1920（与设计稿一致）
+   - maxWidth / maxHeight 必须 ≥ 窗口，且竖屏时 maxHeight 绝不能是 1080（会被裁成半屏）
+   - 建议：fullscreen = true，maximized = true，decorations = false
+   - 页面侧已用 shared/stage.css + fullscreen.js 按 1080×1920 自适应铺满
+   - 笔记本点「浏览」请先关 fullscreen（屏高不够时全屏/超高窗口常像没打开）
+   - 浏览无窗口：完全退出 PakePlus 再开（旧预览服务未停会失败）
+4. 目录对应：
+   - 源码改「首页」→ 同步到 home/config/www
+   - 源码改「内容」→ 同步到 content/config/www
+   - home/config/man、home/config/inject 属于打包壳配置，不在「首页」目录里
+5. 不要依赖 run_command：当前 PackPlus ACL 会拦截该命令
+6. 首页与内容屏通过 PeerJS（WebRTC）局域网直连，需能访问外网 STUN（首次建连）
+7. 改完配置后重新打包再测
+
+关闭窗口会自动断开 Peer 连接。
+中英文在同一页内切换，不会拆掉连接。
