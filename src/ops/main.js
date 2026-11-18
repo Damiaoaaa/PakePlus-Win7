@@ -32,11 +32,12 @@ const ZH = {
   homeY: 1.4,
   homeH: 3.1,
   cats: [
-    { key: "learnedmen", label: "士", y: 30.72, h: 10.78 },
-    { key: "teachers", label: "師", y: 42.63, h: 10.78 },
-    { key: "artists", label: "藝", y: 53.33, h: 10.78 },
-    { key: "craftspeople", label: "工", y: 65.24, h: 10.78 },
-    { key: "merchants", label: "商", y: 77.15, h: 10.78 }
+    // 热区按 zh/20.png 实测对齐（此前整体下偏一格）
+    { key: "learnedmen", label: "士", y: 19.0, h: 10.8 },
+    { key: "teachers", label: "師", y: 30.72, h: 10.78 },
+    { key: "artists", label: "藝", y: 42.63, h: 10.5 },
+    { key: "craftspeople", label: "工", y: 53.4, h: 10.78 },
+    { key: "merchants", label: "商", y: 65.24, h: 10.78 }
   ],
   catX: 10.86,
   catW: 79.14
