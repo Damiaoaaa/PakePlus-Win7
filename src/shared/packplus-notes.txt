@@ -1,15 +1,16 @@
 PackPlus / PakePlus 打包说明（首页）
 
-1. 更多配置：勾选「TauriApi」
-2. Electron（ele）版建议 additionalBrowserArgs：
+1. 更多配置：勾选「TauriApi」（否则 JS 无法强制窗口全屏）
+2. 脚本文件：加入 shared/pake-inject.js（启动即无边框全屏）
+3. Electron（ele）版建议 additionalBrowserArgs：
    --touch-events=enabled
-3. 窗口建议（半屏常见坑）：
-   - acceptFirstMouse = true，focus = true
-   - 竖屏窗口必须 1080×1920（与设计稿一致）
-   - maxWidth / maxHeight 必须 ≥ 窗口，且竖屏时 maxHeight 绝不能是 1080（会被裁成半屏）
-   - 建议：fullscreen = true，maximized = true，decorations = false
-   - 页面侧 shared/stage.css + fullscreen.js 已改为强制铺满（不居中留黑边）
-   - Windows 显示：分辨率 1080×1920、缩放 100%；显卡缩放选「全屏/全画面」
+4. 窗口建议（右侧/底部露桌面常见坑）：
+   - 窗口大小：1080×1920
+   - maxWidth / maxHeight 必须很大（如 4320 / 7680），竖屏 maxHeight 绝不能是 1080
+   - fullscreen = true，maximized = true，decorations = false，alwaysOnTop = true
+   - 可先关掉「窗口保持」，避免还原成半大窗口
+   - Windows 显示：1080×1920、缩放 100%；任务栏可自动隐藏
+   - 显卡缩放选「全屏/全画面」
    - 笔记本点「浏览」请先关 fullscreen（屏高不够时全屏/超高窗口常像没打开）
    - 浏览无窗口：完全退出 PakePlus 再开（旧预览服务未停会失败）
 4. 目录对应：
