@@ -20,12 +20,9 @@
 
   function screenSize() {
     var s = window.screen || {};
-    var w = Math.max(s.width || 0, s.availWidth || 0, DESIGN_W);
-    var h = Math.max(s.height || 0, s.availHeight || 0, DESIGN_H);
-    // 竖屏展板优先落到设计分辨率
-    if (h >= w && Math.abs(w / h - DESIGN_W / DESIGN_H) < 0.08) {
-      return { w: DESIGN_W, h: DESIGN_H };
-    }
+    // 用完整屏幕，不用 avail*（avail 会去掉任务栏，底部留空）
+    var w = s.width || s.availWidth || DESIGN_W;
+    var h = s.height || s.availHeight || DESIGN_H;
     return { w: w, h: h };
   }
 
@@ -43,6 +40,14 @@
         if (win) {
           if (typeof win.setFullscreen === "function") win.setFullscreen(true);
           if (typeof win.maximize === "function") win.maximize();
+          if (typeof win.setDecorations === "function") win.setDecorations(false);
+          if (typeof win.setSize === "function" && window.__TAURI__.dpi && window.__TAURI__.dpi.PhysicalSize) {
+            var size = screenSize();
+            win.setSize(new window.__TAURI__.dpi.PhysicalSize(size.w, size.h));
+          }
+          if (typeof win.setPosition === "function" && window.__TAURI__.dpi && window.__TAURI__.dpi.PhysicalPosition) {
+            win.setPosition(new window.__TAURI__.dpi.PhysicalPosition(0, 0));
+          }
         }
       }
     } catch (error) { /* ignore */ }
@@ -51,16 +56,24 @@
   function layoutBoard() {
     var board = document.querySelector(".board");
     if (!board) return;
+    // 直接铺满可视区域，取消之前等比留边写法
+    board.style.position = "absolute";
+    board.style.left = "0";
+    board.style.top = "0";
+    board.style.right = "0";
+    board.style.bottom = "0";
+    board.style.width = "100%";
+    board.style.height = "100%";
+    board.style.maxWidth = "none";
+    board.style.maxHeight = "none";
+    board.style.margin = "0";
+    board.style.transform = "none";
+
     var vw = document.documentElement.clientWidth || window.innerWidth || DESIGN_W;
     var vh = document.documentElement.clientHeight || window.innerHeight || DESIGN_H;
-    var scale = Math.min(vw / DESIGN_W, vh / DESIGN_H);
-    var w = Math.round(DESIGN_W * scale);
-    var h = Math.round(DESIGN_H * scale);
-    board.style.width = w + "px";
-    board.style.height = h + "px";
-    document.documentElement.style.setProperty("--board-w", w + "px");
-    document.documentElement.style.setProperty("--board-h", h + "px");
-    document.documentElement.style.setProperty("--board-scale", String(scale));
+    document.documentElement.style.setProperty("--board-w", vw + "px");
+    document.documentElement.style.setProperty("--board-h", vh + "px");
+    document.documentElement.style.setProperty("--board-scale", "1");
   }
 
   function enter() {
@@ -74,11 +87,8 @@
 
   function armGestureRetry() {
     function onGesture() {
-      if (isFull()) {
-        layoutBoard();
-        return;
-      }
-      enter();
+      if (!isFull()) enter();
+      else layoutBoard();
     }
     document.addEventListener("pointerdown", onGesture, { capture: true, passive: true });
     document.addEventListener("keydown", onGesture, { capture: true });
@@ -103,7 +113,10 @@
     setTimeout(enter, 1200);
     armGestureRetry();
     bindToggleKey();
-    window.addEventListener("resize", layoutBoard);
+    window.addEventListener("resize", function () {
+      fitWindowToScreen();
+      layoutBoard();
+    });
     window.addEventListener("orientationchange", function () {
       setTimeout(enter, 100);
     });
