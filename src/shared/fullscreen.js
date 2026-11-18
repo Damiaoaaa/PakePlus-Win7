@@ -6,89 +6,152 @@
     return !!(document.fullscreenElement || document.webkitFullscreenElement);
   }
 
+  function screenSize() {
+    var s = window.screen || {};
+    var w = s.width || s.availWidth || DESIGN_W;
+    var h = s.height || s.availHeight || DESIGN_H;
+    return { w: Math.round(w), h: Math.round(h) };
+  }
+
+  function fillPageChrome() {
+    var html = document.documentElement;
+    var body = document.body;
+    html.style.cssText += ";margin:0;padding:0;width:100%;height:100%;overflow:hidden;";
+    if (body) {
+      body.style.margin = "0";
+      body.style.paddingLeft = body.style.paddingLeft || "0";
+      body.style.width = "100%";
+      body.style.height = "100%";
+      body.style.minHeight = "100%";
+      body.style.overflow = "hidden";
+    }
+  }
+
+  function layoutBoard() {
+    fillPageChrome();
+    var board = document.querySelector(".board");
+    var stage = document.querySelector(".stage");
+    if (stage) {
+      stage.style.position = "fixed";
+      stage.style.inset = "0";
+      stage.style.width = "100%";
+      stage.style.height = "100%";
+      stage.style.margin = "0";
+      stage.style.padding = "0";
+    }
+    if (board) {
+      board.style.position = "absolute";
+      board.style.left = "0";
+      board.style.top = "0";
+      board.style.right = "0";
+      board.style.bottom = "0";
+      board.style.width = "100%";
+      board.style.height = "100%";
+      board.style.maxWidth = "none";
+      board.style.maxHeight = "none";
+      board.style.margin = "0";
+      board.style.transform = "none";
+    }
+    var vw = document.documentElement.clientWidth || window.innerWidth || DESIGN_W;
+    var vh = document.documentElement.clientHeight || window.innerHeight || DESIGN_H;
+    document.documentElement.style.setProperty("--board-w", vw + "px");
+    document.documentElement.style.setProperty("--board-h", vh + "px");
+  }
+
   function requestDomFullscreen() {
     var el = document.documentElement;
     var req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
     if (!req) return Promise.resolve(false);
     try {
-      var result = req.call(el);
-      return Promise.resolve(result).then(function () { return true; }).catch(function () { return false; });
+      return Promise.resolve(req.call(el)).then(function () { return true; }).catch(function () { return false; });
     } catch (error) {
       return Promise.resolve(false);
     }
   }
 
-  function screenSize() {
-    var s = window.screen || {};
-    // 用完整屏幕，不用 avail*（avail 会去掉任务栏，底部留空）
-    var w = s.width || s.availWidth || DESIGN_W;
-    var h = s.height || s.availHeight || DESIGN_H;
-    return { w: w, h: h };
+  function callMaybePromise(value) {
+    return Promise.resolve(value).catch(function () { return null; });
+  }
+
+  function getTauriWindow() {
+    try {
+      var api = window.__TAURI__ && window.__TAURI__.window;
+      if (!api) return null;
+      if (typeof api.getCurrentWindow === "function") return api.getCurrentWindow();
+      if (typeof api.getCurrent === "function") return api.getCurrent();
+      if (api.appWindow) return api.appWindow;
+    } catch (error) { /* ignore */ }
+    return null;
   }
 
   function fitWindowToScreen() {
+    var size = screenSize();
+
     try {
-      var size = screenSize();
       if (typeof window.moveTo === "function") window.moveTo(0, 0);
       if (typeof window.resizeTo === "function") window.resizeTo(size.w, size.h);
     } catch (error) { /* ignore */ }
 
+    var win = getTauriWindow();
+    if (!win) return Promise.resolve(false);
+
+    var dpi = window.__TAURI__ && window.__TAURI__.dpi;
+    var tasks = [];
+
     try {
-      var tw = window.__TAURI__ && window.__TAURI__.window;
-      if (tw && typeof tw.getCurrentWindow === "function") {
-        var win = tw.getCurrentWindow();
-        if (win) {
-          if (typeof win.setFullscreen === "function") win.setFullscreen(true);
-          if (typeof win.maximize === "function") win.maximize();
-          if (typeof win.setDecorations === "function") win.setDecorations(false);
-          if (typeof win.setSize === "function" && window.__TAURI__.dpi && window.__TAURI__.dpi.PhysicalSize) {
-            var size = screenSize();
-            win.setSize(new window.__TAURI__.dpi.PhysicalSize(size.w, size.h));
-          }
-          if (typeof win.setPosition === "function" && window.__TAURI__.dpi && window.__TAURI__.dpi.PhysicalPosition) {
-            win.setPosition(new window.__TAURI__.dpi.PhysicalPosition(0, 0));
-          }
+      if (typeof win.setDecorations === "function") tasks.push(callMaybePromise(win.setDecorations(false)));
+      if (typeof win.setShadow === "function") tasks.push(callMaybePromise(win.setShadow(false)));
+      if (typeof win.setAlwaysOnTop === "function") tasks.push(callMaybePromise(win.setAlwaysOnTop(true)));
+      if (typeof win.setFullscreen === "function") tasks.push(callMaybePromise(win.setFullscreen(true)));
+      if (typeof win.maximize === "function") tasks.push(callMaybePromise(win.maximize()));
+
+      if (typeof win.setSize === "function" && dpi) {
+        if (dpi.LogicalSize) {
+          tasks.push(callMaybePromise(win.setSize(new dpi.LogicalSize(size.w, size.h))));
+        }
+        if (dpi.PhysicalSize) {
+          tasks.push(callMaybePromise(win.setSize(new dpi.PhysicalSize(size.w, size.h))));
+        }
+      }
+      if (typeof win.setPosition === "function" && dpi) {
+        if (dpi.LogicalPosition) {
+          tasks.push(callMaybePromise(win.setPosition(new dpi.LogicalPosition(0, 0))));
+        }
+        if (dpi.PhysicalPosition) {
+          tasks.push(callMaybePromise(win.setPosition(new dpi.PhysicalPosition(0, 0))));
         }
       }
     } catch (error) { /* ignore */ }
+
+    return Promise.all(tasks).then(function () { return true; }).catch(function () { return false; });
   }
 
-  function layoutBoard() {
-    var board = document.querySelector(".board");
-    if (!board) return;
-    // 直接铺满可视区域，取消之前等比留边写法
-    board.style.position = "absolute";
-    board.style.left = "0";
-    board.style.top = "0";
-    board.style.right = "0";
-    board.style.bottom = "0";
-    board.style.width = "100%";
-    board.style.height = "100%";
-    board.style.maxWidth = "none";
-    board.style.maxHeight = "none";
-    board.style.margin = "0";
-    board.style.transform = "none";
-
-    var vw = document.documentElement.clientWidth || window.innerWidth || DESIGN_W;
-    var vh = document.documentElement.clientHeight || window.innerHeight || DESIGN_H;
-    document.documentElement.style.setProperty("--board-w", vw + "px");
-    document.documentElement.style.setProperty("--board-h", vh + "px");
-    document.documentElement.style.setProperty("--board-scale", "1");
+  function windowLooksShort() {
+    var size = screenSize();
+    var ow = window.outerWidth || window.innerWidth || 0;
+    var oh = window.outerHeight || window.innerHeight || 0;
+    return ow + 2 < size.w || oh + 2 < size.h;
   }
 
   function enter() {
-    fitWindowToScreen();
-    layoutBoard();
-    return requestDomFullscreen().then(function (ok) {
+    return fitWindowToScreen().then(function () {
       layoutBoard();
+      return requestDomFullscreen();
+    }).then(function (ok) {
+      layoutBoard();
+      if (windowLooksShort()) {
+        return fitWindowToScreen().then(function () {
+          layoutBoard();
+          return ok;
+        });
+      }
       return ok;
     });
   }
 
   function armGestureRetry() {
     function onGesture() {
-      if (!isFull()) enter();
-      else layoutBoard();
+      enter();
     }
     document.addEventListener("pointerdown", onGesture, { capture: true, passive: true });
     document.addEventListener("keydown", onGesture, { capture: true });
@@ -109,20 +172,28 @@
   function boot() {
     layoutBoard();
     enter();
-    setTimeout(enter, 300);
-    setTimeout(enter, 1200);
+    setTimeout(enter, 200);
+    setTimeout(enter, 800);
+    setTimeout(enter, 2000);
+    // 若仍未铺满，持续短暂重试（应对壳层晚就绪）
+    var tries = 0;
+    var timer = setInterval(function () {
+      tries += 1;
+      if (!windowLooksShort() || tries > 12) {
+        clearInterval(timer);
+        return;
+      }
+      enter();
+    }, 500);
     armGestureRetry();
     bindToggleKey();
     window.addEventListener("resize", function () {
-      fitWindowToScreen();
       layoutBoard();
+      if (windowLooksShort()) enter();
     });
     window.addEventListener("orientationchange", function () {
       setTimeout(enter, 100);
     });
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", layoutBoard);
-    }
   }
 
   if (document.readyState === "loading") {
