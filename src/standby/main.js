@@ -17,19 +17,15 @@
     fallback.textContent = text || "待机画面暂时无法播放";
   }
 
-  function candidateUrls() {
-    const rels = [
-      "../assets/standby.mp4",
-      "./../assets/standby.mp4",
-      "../../assets/standby.mp4",
-      "assets/standby.mp4"
-    ];
-    const urls = [];
-    rels.forEach((rel) => {
-      const url = asset(rel);
-      if (urls.indexOf(url) < 0) urls.push(url);
-    });
-    return urls;
+  function fallbackUrls() {
+    return [
+      asset("../data/standby.mp4"),
+      asset("../../data/standby.mp4"),
+      asset("../assets/standby.mp4"),
+      asset("./../assets/standby.mp4"),
+      asset("../../assets/standby.mp4"),
+      asset("assets/standby.mp4")
+    ].filter(function (url, index, all) { return all.indexOf(url) === index; });
   }
 
   function tryPlay() {
@@ -45,7 +41,7 @@
     const i = index || 0;
     if (!video) return;
     if (i >= urls.length) {
-      showFallback("找不到待机视频，请检查 assets/standby.mp4");
+      showFallback("找不到待机视频，请检查 data/standby.mp4 或 assets/standby.mp4");
       return;
     }
     const url = urls[i];
@@ -72,7 +68,13 @@
 
   function playLoop() {
     hideFallback();
-    loadVideo(candidateUrls(), 0);
+    if (window.StandbyMedia && typeof StandbyMedia.resolveUrls === "function") {
+      StandbyMedia.resolveUrls()
+        .then(function (urls) { loadVideo(urls, 0); })
+        .catch(function () { loadVideo(fallbackUrls(), 0); });
+      return;
+    }
+    loadVideo(fallbackUrls(), 0);
   }
 
   playLoop();
