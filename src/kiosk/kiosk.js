@@ -51,43 +51,60 @@
 
   function playVideo() {
     if (!video) return;
-    const urls = [
+
+    function startWithUrls(urls) {
+      let i = 0;
+      function tryNext() {
+        if (i >= urls.length) {
+          showFallback("找不到待机视频，请检查 data/standby.mp4 或 assets/standby.mp4");
+          return;
+        }
+        const url = urls[i++];
+        const onError = function () {
+          video.removeEventListener("error", onError);
+          tryNext();
+        };
+        video.addEventListener("error", onError);
+        video.addEventListener("loadeddata", function () {
+          video.removeEventListener("error", onError);
+          video.muted = true;
+          video.loop = true;
+          video.play().then(hideFallback).catch(function () {
+            showFallback("点击屏幕开始播放");
+            const once = function () {
+              document.removeEventListener("pointerdown", once, true);
+              video.play().then(hideFallback).catch(function () {
+                showFallback("待机视频无法播放");
+              });
+            };
+            document.addEventListener("pointerdown", once, true);
+          });
+        }, { once: true });
+        video.src = url;
+        video.load();
+      }
+      hideFallback();
+      tryNext();
+    }
+
+    if (window.StandbyMedia && typeof StandbyMedia.resolveUrls === "function") {
+      StandbyMedia.resolveUrls()
+        .then(startWithUrls)
+        .catch(function () {
+          startWithUrls([
+            asset("../data/standby.mp4"),
+            asset("../assets/standby.mp4"),
+            asset("./../assets/standby.mp4")
+          ]);
+        });
+      return;
+    }
+
+    startWithUrls([
+      asset("../data/standby.mp4"),
       asset("../assets/standby.mp4"),
       asset("./../assets/standby.mp4")
-    ].filter(function (url, index, all) { return all.indexOf(url) === index; });
-
-    let i = 0;
-    function tryNext() {
-      if (i >= urls.length) {
-        showFallback("找不到待机视频 assets/standby.mp4");
-        return;
-      }
-      const url = urls[i++];
-      const onError = function () {
-        video.removeEventListener("error", onError);
-        tryNext();
-      };
-      video.addEventListener("error", onError);
-      video.addEventListener("loadeddata", function () {
-        video.removeEventListener("error", onError);
-        video.muted = true;
-        video.loop = true;
-        video.play().then(hideFallback).catch(function () {
-          showFallback("点击屏幕开始播放");
-          const once = function () {
-            document.removeEventListener("pointerdown", once, true);
-            video.play().then(hideFallback).catch(function () {
-              showFallback("待机视频无法播放");
-            });
-          };
-          document.addEventListener("pointerdown", once, true);
-        });
-      }, { once: true });
-      video.src = url;
-      video.load();
-    }
-    hideFallback();
-    tryNext();
+    ]);
   }
 
   function renderList() {
